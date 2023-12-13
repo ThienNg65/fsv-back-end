@@ -1,5 +1,6 @@
 import express from 'express';
 import bodyParser from 'body-parser';
+import { MongoClient } from 'mongodb';
 
 const products = [{
     id: '123',
@@ -66,21 +67,21 @@ const products = [{
     averageRating: '5.0',
 },
 {
-    id: '901',
+    id: '112',
     name: 'Teal Dress Shoes',
     price: '330.00',
     description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed vel enim quam. Mauris nisl tellus, fringilla sed cursus eu, convallis non diam. Mauris quis fringilla nunc. Aenean leo lacus, lobortis sit amet venenatis a, aliquet tristique erat. Etiam laoreet mauris ut dapibus tincidunt. Pellentesque non ex at nisl ornare aliquam sed non ante. Nam lobortis magna id massa cursus, sit amet condimentum metus facilisis. Donec eu tortor at est tempor cursus et sed velit. Morbi rutrum elementum est vitae fringilla. Phasellus dignissim purus turpis, ac varius enim auctor vulputate. In ullamcorper vestibulum mauris. Nulla malesuada pretium mauris, lobortis eleifend dolor iaculis vitae.',
     imageUrl: '/images/shoes-10.jpg',
     averageRating: '5.0',
 }, {
-    id: '789',
+    id: '223',
     name: 'Fancy Boots',
     price: '230.00',
     description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed vel enim quam. Mauris nisl tellus, fringilla sed cursus eu, convallis non diam. Mauris quis fringilla nunc. Aenean leo lacus, lobortis sit amet venenatis a, aliquet tristique erat. Etiam laoreet mauris ut dapibus tincidunt. Pellentesque non ex at nisl ornare aliquam sed non ante. Nam lobortis magna id massa cursus, sit amet condimentum metus facilisis. Donec eu tortor at est tempor cursus et sed velit. Morbi rutrum elementum est vitae fringilla. Phasellus dignissim purus turpis, ac varius enim auctor vulputate. In ullamcorper vestibulum mauris. Nulla malesuada pretium mauris, lobortis eleifend dolor iaculis vitae.',
     imageUrl: '/images/shoes-11.jpg',
     averageRating: '5.0',
 }, {
-    id: '890',
+    id: '334',
     name: 'Gold Shoes',
     price: '180.00',
     description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed vel enim quam. Mauris nisl tellus, fringilla sed cursus eu, convallis non diam. Mauris quis fringilla nunc. Aenean leo lacus, lobortis sit amet venenatis a, aliquet tristique erat. Etiam laoreet mauris ut dapibus tincidunt. Pellentesque non ex at nisl ornare aliquam sed non ante. Nam lobortis magna id massa cursus, sit amet condimentum metus facilisis. Donec eu tortor at est tempor cursus et sed velit. Morbi rutrum elementum est vitae fringilla. Phasellus dignissim purus turpis, ac varius enim auctor vulputate. In ullamcorper vestibulum mauris. Nulla malesuada pretium mauris, lobortis eleifend dolor iaculis vitae.',
@@ -98,8 +99,18 @@ export let cartItems = [
 const app = express();
 app.use(bodyParser.json());
 
-app.get('/api/products', (req, res) => {
+
+
+// GET ALL PRODUCTS
+app.get('/api/products', async (req, res) => {
+    const client = await MongoClient.connect(
+        'mongodb://127.0.0.1:27017',
+        { useNewUrlParser: true, useUnifiedTopology: true },
+    );
+    const db = client.db('vue-db');
+    const products = await db.collection('products').find({}).toArray();
     res.status(200).json(products);
+    client.close();
 });
 
 app.get('/api/users/:userId/cart', (req, res) => {
