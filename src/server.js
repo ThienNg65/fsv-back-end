@@ -113,8 +113,31 @@ app.get('/api/products', async (req, res) => {
     client.close();
 });
 
-app.get('/api/users/:userId/cart', (req, res) => {
+// GET USER CART ITEMS
+app.get('/api/users/:userId/cart', async (req, res) => {
+    const { userId } = req.params;
+
+    const client = await MongoClient.connect(
+        'mongodb://127.0.0.1:27017',
+        { useNewUrlParser: true, useUnifiedTopology: true },
+    );
+    const db = client.db('vue-db');
+    const user = await db.collection('users').findOne({ id: userId });
+
+    if (!user) {
+        return res.status(404).json('Could not find the user!');
+    }
+    const product = await db.collection('products').find({}).toArray();
+    const cartItemIds = user.cartItems;
+
+    const cartItems = cartItemIds.map(
+        id => (
+            product.find(product => product.id === id)
+        )
+    );
+
     res.status(200).json(cartItems);
+    client.close();
 });
 
 app.get('/api/products/:productId', (req, res) => {
