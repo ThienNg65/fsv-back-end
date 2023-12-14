@@ -174,9 +174,9 @@ app.post('/api/users/:userId/cart', async (req, res) => {
 
     const user = await db.collection('users').findOne({ id: userId });
     const cartItemIds = user.cartItems;
-    const cartItems = cartItemIds.map(id => (
+    const cartItems = cartItemIds.map(id =>
         products.find(product => product.id === id)
-    ));
+    );
 
 
     res.status(200).json(cartItems);
@@ -184,12 +184,26 @@ app.post('/api/users/:userId/cart', async (req, res) => {
 });
 
 // DELETE FROM CART
-app.delete('/api/users/:usersId/cart/:productId', (req, res) => {
-    const { productId } = req.params;
-    cartItems = cartItems.filter(product => product.id !== productId)
-    res.status(200).json(cartItems);
-})
+app.delete('/api/users/:userId/cart/:productId', async (req, res) => {
+    const { userId, productId } = req.params;
+    const client = await MongoClient.connect(
+        'mongodb://127.0.0.1:27017',
+        { useNewUrlParser: true, useUnifiedTopology: true },
+    );
+    const db = client.db('vue-db');
 
+    await db.collection('users').updateOne({ id: userId }, {
+        $pull: { cartItems: productId },
+    });
+    const user = await db.collection('users').findOne({ id: userId });
+    const products = await db.collection('products').find({}).toArray();
+    const cartItemIds = user.cartItems;
+    const cartItems = cartItemIds.map(id =>
+        products.find(product => product.id === id));
+
+    res.status(200).json(cartItems);
+    client.close();
+});
 app.listen(8000, () => {
     console.log('Server is listening on port 8000');
 });
